@@ -1,32 +1,62 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:node:.
 version: 2.1
-orbs:
-  node: circleci/node@5
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - main
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - main
+
 jobs:
-  test-node:
-    # Install node dependencies and run tests
-    executor: node/default
+  build:
+    working_directory: ~/ExampleApplication
+    docker:
+      - image: circleci/node:10.16.3
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
+      - setup_remote_docker
+      - run:
+          name: Update npm
+          command: 'sudo npm install -g npm@5'
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install dependencies
+          command: npm install
+      - run:
+          name: Audit Packages
+          command: npm audit
       - run:
           name: Run tests
-          command: npm test --passWithNoTests
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
+          command: npm run test
+      - save_cache:
+          key: dependency-cache-{{ checksum "package-lock.json" }}
+          paths:
+            - ./node_modules
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
-workflows:
-  build-and-test:
-    jobs:
-      - test-node
-    # - deploy:
-    #     requires:
-    #       - test-node
+          name: Login to Docker Hub
+          command: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - run:
+          name: Build Docker Image
+          command: docker build -t $IMAGE_NAME:latest .
+      - run:
+          name: Publish Docker Image
+          command: docker push $IMAGE_NAME
+
+  deploy:
+    docker:
+      - image: circleci/node:10.16.3
+    steps:
+      - run:
+          name: Deploy application
+          command: ssh -o StrictHostKeyChecking=no $EC2_USERNAME@$EC2_PUBLIC_DNS "export SERVER=\"$SERVER\"; export PRIVATE_KEY=\"$PRIVATE_KEY\"; rm -rf ExampleApplication/; git clone https://github.com/Jordan-Fitzgerald-Skelton/ExampleApplication.git; source ExampleApplication/deploy.sh"
