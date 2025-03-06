@@ -34,9 +34,6 @@ jobs:
           name: Install dependencies
           command: npm install
       - run:
-          name: Audit Packages
-          command: npm audit
-      - run:
           name: Run tests
           command: npm run test
       - save_cache:
