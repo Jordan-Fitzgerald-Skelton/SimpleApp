@@ -12,7 +12,9 @@
     "debug": "~2.6.9",
     "ejs": "^3.1.10",
     "express": "^4.21.2",
+    "glob": "^11.0.1",
     "http-errors": "~1.6.3",
+    "mkdirp": "^3.0.1",
     "mocha": "^11.1.0",
     "mocha-circleci-reporter": "0.0.3",
     "morgan": "~1.9.1"
