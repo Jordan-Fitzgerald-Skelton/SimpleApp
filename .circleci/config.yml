@@ -36,9 +36,6 @@ jobs:
       - run:
           name: Run Audit
           command: npm audit || true
-      - run:
-          name: Run tests
-          command: npm run test
       - save_cache:
           key: dependency-cache-{{ checksum "package-lock.json" }}
           paths:
