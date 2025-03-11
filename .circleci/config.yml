@@ -34,6 +34,9 @@ jobs:
           name: Install dependencies
           command: npm install
       - run:
+          name: Run Audit
+          command: npm audit || true
+      - run:
           name: Run tests
           command: npm run test
       - save_cache:
